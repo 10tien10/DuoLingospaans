@@ -1,7 +1,1264 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
+<meta charset="UTF-8"><!DOCTYPE html>
+<html lang="nl">
+<head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Español — Leer Spaans</title>
+<style>
+  :root{
+    --green:#58cc02; --green-dark:#58a700; --green-light:#d7ffb8;
+    --blue:#1cb0f6; --blue-dark:#1899d6;
+    --red:#ff4b4b; --red-dark:#ea2b2b;
+    --yellow:#ffc800; --purple:#ce82ff;
+    --gray:#e5e5e5; --gray-mid:#afafaf; --gray-dark:#4b4b4b;
+    --text:#3c3c3c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;
+    background:#fff;color:var(--text);
+    display:flex;justify-content:center;min-height:100vh;font-weight:800;
+  }
+  #app{width:100%;max-width:460px;min-height:100vh;position:relative;display:flex;flex-direction:column;background:#fff;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:8px;position:sticky;top:0;background:#fff;z-index:5;}
+  .stat{display:flex;align-items:center;gap:5px;font-size:18px;font-weight:800;}
+  .stat .icon{font-size:21px;}
+  .stat.streak{color:#ff9600;} .stat.gems{color:var(--blue);} .stat.hearts{color:var(--red);}
+  .menu-btn{background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-mid);}
+
+  .progress-wrap{display:flex;align-items:center;gap:14px;padding:8px 18px 4px;}
+  .close-btn{background:none;border:none;font-size:30px;color:var(--gray-mid);cursor:pointer;line-height:1;font-weight:800;}
+  .progress-bar{flex:1;height:16px;background:var(--gray);border-radius:10px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--green);border-radius:10px;width:0;transition:width .4s ease;position:relative;}
+  .progress-fill::after{content:"";position:absolute;top:3px;left:8px;right:8px;height:4px;background:rgba(255,255,255,.35);border-radius:4px;}
+
+  .screen{flex:1;display:none;flex-direction:column;}
+  .screen.active{display:flex;}
+
+  .home-header{padding:16px 18px 6px;}
+  .home-header h1{font-size:25px;color:var(--gray-dark);}
+  .home-header p{font-size:14px;color:var(--gray-mid);font-weight:700;margin-top:2px;}
+  .guide{font-size:34px;}
+  .review-card{width:calc(100% - 36px);margin:14px 18px 2px;padding:15px 18px;border:none;border-radius:16px;cursor:pointer;display:flex;align-items:center;gap:14px;text-align:left;color:#fff;font-family:inherit;background:linear-gradient(135deg,#ffb400,#ff7a00);box-shadow:0 4px 0 rgba(0,0,0,.15);}
+  .review-card.done{background:linear-gradient(135deg,#9b8cff,#6f5cff);}
+  .review-card:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.15);}
+  .review-card .ricon{font-size:31px;}
+  .review-card .rtext{flex:1;}
+  .review-card h2{font-size:17px;}
+  .review-card p{font-size:12px;font-weight:700;opacity:.92;margin-top:2px;}
+  .review-card .rarrow{font-size:15px;opacity:.85;}
+  .unit-banner{margin:16px 18px 6px;padding:16px 20px;border-radius:16px;color:#fff;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 0 rgba(0,0,0,.15);}
+  .unit-banner.locked{filter:grayscale(.7);opacity:.65;}
+  .unit-banner h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;opacity:.85;}
+  .unit-banner p{font-size:19px;margin-top:2px;}
+  .unit-banner .sub{font-size:12px;font-weight:700;opacity:.85;margin-top:3px;}
+  .path{display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 0 26px;}
+  .lesson-row{display:flex;justify-content:center;width:100%;}
+  .node{width:70px;height:62px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:27px;position:relative;color:#fff;transition:transform .1s;}
+  .node:active{transform:translateY(3px);}
+  .node.done{background:var(--green);box-shadow:0 5px 0 var(--green-dark);}
+  .node.current{background:var(--yellow);box-shadow:0 5px 0 #e6a200;animation:bob 1.4s ease-in-out infinite;}
+  .node.locked{background:var(--gray);box-shadow:0 5px 0 #c8c8c8;color:#afafaf;cursor:not-allowed;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .node .lbl{position:absolute;bottom:-20px;font-size:11px;color:var(--gray-mid);white-space:nowrap;}
+  .node.current .lbl{color:#e6a200;}
+  .start-pill{position:absolute;top:-40px;left:50%;transform:translateX(-50%);background:#fff;color:var(--green);border:2px solid var(--gray);padding:5px 12px;border-radius:14px;font-size:12px;box-shadow:0 3px 0 var(--gray);}
+  .start-pill::after{content:"";position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid #fff;}
+
+  .lesson-body{flex:1;padding:20px 22px;display:flex;flex-direction:column;}
+  .prompt-title{font-size:21px;color:var(--gray-dark);margin-bottom:20px;}
+  .speaker-row{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap;}
+  .speaker-btn{background:var(--blue);border:none;box-shadow:0 4px 0 var(--blue-dark);color:#fff;width:66px;height:66px;border-radius:16px;font-size:28px;cursor:pointer;flex-shrink:0;}
+  .speaker-btn.small{width:44px;height:44px;font-size:18px;border-radius:12px;}
+  .speaker-btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--blue-dark);}
+  .es-word{font-size:23px;color:var(--gray-dark);}
+
+  .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:4px;}
+  .choice{position:relative;border:2px solid var(--gray);border-bottom-width:4px;border-radius:16px;padding:18px 12px;background:#fff;cursor:pointer;text-align:center;font-size:17px;color:var(--gray-dark);transition:.1s;}
+  .choice .emoji{font-size:38px;display:block;margin-bottom:6px;}
+  .choice .num{position:absolute;top:7px;left:11px;font-size:12px;color:var(--gray-mid);}
+  .choice:hover{background:#f7fdff;}
+  .choice.selected{border-color:var(--blue);background:#ddf4ff;color:var(--blue-dark);}
+  .choice.correct{border-color:var(--green);background:var(--green-light);color:var(--green-dark);}
+  .choice.wrong{border-color:var(--red);background:#ffdfe0;color:var(--red-dark);}
+  .choice.disabled{pointer-events:none;}
+
+  .answer-area{min-height:60px;border-top:2px solid var(--gray);border-bottom:2px solid var(--gray);padding:12px 4px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;margin-bottom:18px;}
+  .bank{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+  .tile{border:2px solid var(--gray);border-bottom-width:4px;border-radius:14px;background:#fff;padding:10px 15px;font-size:17px;color:var(--gray-dark);cursor:pointer;transition:.08s;}
+  .tile:active{transform:translateY(2px);}
+  .tile.used{background:var(--gray);border-color:var(--gray);color:var(--gray);pointer-events:none;box-shadow:none;}
+
+  .match-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px;}
+  .match-btn{border:2px solid var(--gray);border-bottom-width:4px;border-radius:14px;background:#fff;padding:15px 10px;font-size:16px;color:var(--gray-dark);cursor:pointer;transition:.08s;}
+  .match-btn.selected{border-color:var(--blue);background:#ddf4ff;color:var(--blue-dark);}
+  .match-btn.done{opacity:.25;pointer-events:none;border-color:var(--green);}
+  .match-btn.flash-wrong{border-color:var(--red);background:#ffdfe0;}
+
+  .type-input{width:100%;border:2px solid var(--gray);border-radius:14px;padding:15px;font-size:18px;font-family:inherit;font-weight:800;color:var(--gray-dark);outline:none;}
+  .type-input:focus{border-color:var(--blue);}
+
+  .footer{padding:16px 22px 26px;border-top:2px solid transparent;transition:.2s;}
+  .footer.correct{background:var(--green-light);border-color:#a6e772;}
+  .footer.wrong{background:#ffdfe0;border-color:#ffb3b5;}
+  .feedback{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:18px;}
+  .feedback .fico{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;background:#fff;}
+  .feedback.correct{color:var(--green-dark);} .feedback.wrong{color:var(--red-dark);}
+  .feedback small{display:block;font-size:13px;font-weight:700;}
+  .btn{width:100%;border:none;border-radius:16px;padding:15px;font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;font-family:inherit;transition:.1s;}
+  .btn-green{background:var(--green);color:#fff;box-shadow:0 4px 0 var(--green-dark);}
+  .btn-green:active{transform:translateY(2px);box-shadow:0 2px 0 var(--green-dark);}
+  .btn-red{background:var(--red);color:#fff;box-shadow:0 4px 0 var(--red-dark);}
+  .btn-red:active{transform:translateY(2px);box-shadow:0 2px 0 var(--red-dark);}
+  .btn-gray{background:var(--gray);color:var(--gray-mid);box-shadow:none;cursor:not-allowed;}
+  .btn-skip{background:none;color:var(--gray-mid);border:2px solid var(--gray);box-shadow:0 4px 0 var(--gray);}
+
+  .complete{align-items:center;justify-content:center;text-align:center;padding:30px;gap:6px;}
+  .complete .trophy{font-size:86px;animation:pop .5s ease;}
+  @keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+  .complete h1{font-size:28px;color:var(--yellow);text-shadow:0 2px 0 #e6a200;}
+  .stat-cards{display:flex;gap:12px;margin:20px 0;width:100%;max-width:360px;}
+  .stat-card{flex:1;border-radius:16px;padding:2px;}
+  .stat-card.gold{background:var(--yellow);} .stat-card.blue{background:var(--blue);}
+  .stat-card .inner{background:#fff;border-radius:14px;padding:10px 6px;}
+  .stat-card h2{font-size:12px;text-transform:uppercase;letter-spacing:.5px;padding:6px 0 8px;}
+  .stat-card.gold h2{color:#ffc800;} .stat-card.blue h2{color:#1cb0f6;}
+  .stat-card .val{font-size:21px;color:var(--gray-dark);display:flex;align-items:center;justify-content:center;gap:5px;}
+
+  .modal{position:fixed;inset:0;background:rgba(255,255,255,.96);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;z-index:20;gap:14px;}
+  .modal.active{display:flex;}
+  .modal .big{font-size:74px;} .modal h2{font-size:23px;color:var(--red);} .modal p{font-weight:700;color:var(--gray-mid);font-size:15px;max-width:340px;}
+  .modal .btn{max-width:320px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <div class="topbar">
+      <button class="menu-btn" onclick="openReset()" title="Menu">⚙️</button>
+      <div style="display:flex;gap:14px;">
+        <div class="stat streak"><span class="icon">🔥</span><span id="h-streak">0</span></div>
+        <div class="stat gems"><span class="icon">💎</span><span id="h-gems">0</span></div>
+        <div class="stat hearts"><span class="icon">❤️</span><span id="h-hearts">5</span></div>
+      </div>
+    </div>
+    <div class="home-header">
+      <h1>¡Hola, Tineke! 🇪🇸</h1>
+      <p id="home-sub">18 thema's · 50 lessen elk. Kies een les en leg je streak aan.</p>
+    </div>
+    <div id="units"></div>
+  </section>
+
+  <!-- LESSON -->
+  <section id="lesson" class="screen">
+    <div class="progress-wrap">
+      <button class="close-btn" onclick="quitLesson()">✕</button>
+      <div class="progress-bar"><div class="progress-fill" id="l-progress"></div></div>
+      <div class="stat hearts"><span class="icon">❤️</span><span id="l-hearts">5</span></div>
+    </div>
+    <div class="lesson-body" id="l-body"></div>
+    <div class="footer" id="l-footer">
+      <div id="l-feedback"></div>
+      <button class="btn btn-gray" id="l-check" disabled onclick="onCheck()">Controleer</button>
+    </div>
+  </section>
+
+  <!-- COMPLETE -->
+  <section id="done" class="screen complete">
+    <div class="trophy">🏆</div>
+    <h1>¡Bien hecho!</h1>
+    <p style="color:var(--gray-mid);font-weight:700">Les voltooid</p>
+    <div class="stat-cards">
+      <div class="stat-card gold"><div class="inner"><h2>Deze les XP</h2><div class="val">⚡ <span id="d-xp">0</span></div></div></div>
+      <div class="stat-card blue"><div class="inner"><h2>Goed</h2><div class="val" id="d-acc">0%</div></div></div>
+    </div>
+    <button class="btn btn-green" style="max-width:340px" onclick="backHome()">Doorgaan</button>
+  </section>
+
+  <!-- OUT OF HEARTS -->
+  <div class="modal" id="heartModal">
+    <div class="big">💔</div>
+    <h2>Je hartjes zijn op!</h2>
+    <p>Geen zorgen — van fouten leer je het meest. Hartjes vullen vanzelf aan (1 per 30 min), of vul ze nu bij.</p>
+    <button class="btn btn-green" onclick="refillHearts()">❤️ Hartjes aanvullen</button>
+    <button class="btn btn-skip" onclick="quitLesson()">Terug naar het overzicht</button>
+  </div>
+
+  <!-- RESET / MENU -->
+  <div class="modal" id="resetModal">
+    <div class="big">⚙️</div>
+    <h2 style="color:var(--gray-dark)">Menu</h2>
+    <p id="reset-stats"></p>
+    <button class="btn btn-green" onclick="closeReset()">Verder leren</button>
+    <button class="btn btn-red" onclick="resetAll()">🗑️ Alle voortgang wissen</button>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA — 18 thema's, compact genoteerd en geparsed
+   w:  es | nl | emoji         s:  spaanse woorden = nederlandse zin
+   ============================================================ */
+const RAW = [
+{t:"Unit 1 · De basis",c:"#58cc02",g:"🦉",
+ w:`hola|hallo|👋
+adiós|tot ziens|👋
+gracias|dank je wel|🙏
+de nada|graag gedaan|🤗
+por favor|alsjeblieft|🤲
+sí|ja|✅
+no|nee|❌
+buenos días|goedemorgen|🌅
+buenas tardes|goedemiddag|🌇
+buenas noches|goedenacht|🌙
+hasta luego|tot later|👋
+hasta pronto|tot snel|👋
+hasta mañana|tot morgen|🌙
+perdón|sorry|🙇
+lo siento|het spijt me|😔
+bienvenido|welkom|🎉
+bien|goed|👍
+mal|slecht|👎
+claro|natuurlijk|👌
+vale|oké|🆗
+amigo|vriend|🧑‍🤝‍🧑
+mucho gusto|aangenaam|🤝
+me llamo|ik heet|🙋
+encantado|leuk kennis te maken|😊
+señor|meneer|👨
+señora|mevrouw|👩
+también|ook|➕
+pero|maar|↔️
+muy|heel|💯
+felicidades|gefeliciteerd|🎉`,
+ s:`hola cómo estás=hallo, hoe gaat het?
+muy bien gracias=heel goed, dank je
+cómo te llamas=hoe heet je?
+me llamo Ana=ik heet Ana
+mucho gusto=aangenaam
+encantado de conocerte=leuk je te ontmoeten
+yo también=ik ook
+hasta mañana=tot morgen
+sí por favor=ja, alsjeblieft
+no gracias=nee, dank je
+lo siento mucho=het spijt me zeer
+buenos días a todos=goedemorgen allemaal
+adiós y gracias=tot ziens en dank je wel
+eres mi amigo=je bent mijn vriend
+muchas gracias=hartelijk dank`},
+
+{t:"Unit 2 · Getallen & kleuren",c:"#1cb0f6",g:"🐤",
+ w:`uno|één|1️⃣
+dos|twee|2️⃣
+tres|drie|3️⃣
+cuatro|vier|4️⃣
+cinco|vijf|5️⃣
+seis|zes|6️⃣
+siete|zeven|7️⃣
+ocho|acht|8️⃣
+nueve|negen|9️⃣
+diez|tien|🔟
+once|elf|🔢
+doce|twaalf|🕛
+trece|dertien|🔢
+catorce|veertien|🔢
+quince|vijftien|🔢
+veinte|twintig|🔢
+cien|honderd|💯
+número|getal|🔢
+color|kleur|🎨
+rojo|rood|🔴
+azul|blauw|🔵
+verde|groen|🟢
+amarillo|geel|🟡
+negro|zwart|⚫
+blanco|wit|⚪
+naranja|oranje|🟠
+rosa|roze|🌸
+marrón|bruin|🟤
+gris|grijs|🌫️
+morado|paars|🟣`,
+ s:`tengo dos gatos=ik heb twee katten
+el coche es rojo=de auto is rood
+tres manzanas rojas=drie rode appels
+cinco perros=vijf honden
+la casa es blanca=het huis is wit
+me gusta el color azul=ik hou van de kleur blauw
+cuatro y cuatro son ocho=vier en vier is acht
+tengo veinte años=ik ben twintig jaar
+hay cien personas=er zijn honderd mensen
+el cielo es azul=de lucht is blauw
+quince euros=vijftien euro
+siete días=zeven dagen`},
+
+{t:"Unit 3 · Eten & drinken",c:"#ff9600",g:"🍎",
+ w:`agua|water|💧
+pan|brood|🍞
+café|koffie|☕
+leche|melk|🥛
+manzana|appel|🍎
+queso|kaas|🧀
+vino|wijn|🍷
+pescado|vis|🐟
+carne|vlees|🥩
+pollo|kip|🍗
+arroz|rijst|🍚
+huevo|ei|🥚
+fruta|fruit|🍓
+verdura|groente|🥦
+sal|zout|🧂
+azúcar|suiker|🍬
+cerveza|bier|🍺
+té|thee|🍵
+sopa|soep|🍲
+ensalada|salade|🥗
+naranja|sinaasappel|🍊
+plátano|banaan|🍌
+tomate|tomaat|🍅
+patata|aardappel|🥔
+desayuno|ontbijt|🍳
+cena|avondeten|🍴
+vaso|glas|🥛
+taza|kopje|☕
+chocolate|chocolade|🍫
+helado|ijsje|🍦
+hambre|honger|😋
+sed|dorst|🥵`,
+ s:`quiero agua por favor=ik wil water, alsjeblieft
+el pan y el queso=het brood en de kaas
+un café con leche=een koffie met melk
+me gusta el vino=ik hou van wijn
+como pan cada día=ik eet elke dag brood
+tengo hambre=ik heb honger
+tengo sed=ik heb dorst
+el desayuno está listo=het ontbijt is klaar
+quiero un vaso de agua=ik wil een glas water
+me gusta el chocolate=ik hou van chocolade
+la cena es a las ocho=het avondeten is om acht uur
+dos cervezas por favor=twee bieren, alsjeblieft
+la fruta es dulce=het fruit is zoet`},
+
+{t:"Unit 4 · Familie & dieren",c:"#ce82ff",g:"🐶",
+ w:`madre|moeder|👩
+padre|vader|👨
+hija|dochter|👧
+hijo|zoon|👦
+hermano|broer|🧑
+hermana|zus|👩
+abuelo|opa|👴
+abuela|oma|👵
+familia|familie|👨‍👩‍👧‍👦
+marido|echtgenoot|🤵
+esposa|echtgenote|👰
+bebé|baby|👶
+tío|oom|🧔
+tía|tante|👩
+primo|neef|🧑
+prima|nicht|👩
+novio|vriend (relatie)|❤️
+novia|vriendin (relatie)|❤️
+perro|hond|🐶
+gato|kat|🐱
+pájaro|vogel|🐦
+caballo|paard|🐴
+vaca|koe|🐮
+cerdo|varken|🐷
+oveja|schaap|🐑
+conejo|konijn|🐰
+ratón|muis|🐭
+elefante|olifant|🐘
+mono|aap|🐒
+tortuga|schildpad|🐢
+león|leeuw|🦁
+oso|beer|🐻`,
+ s:`mi madre y mi padre=mijn moeder en mijn vader
+tengo dos hijas=ik heb twee dochters
+el perro y el gato=de hond en de kat
+mi hermano tiene un caballo=mijn broer heeft een paard
+la familia es grande=de familie is groot
+mi tío vive en España=mijn oom woont in Spanje
+tengo tres primos=ik heb drie neven
+el elefante es grande=de olifant is groot
+me gustan los animales=ik hou van dieren
+mi abuela tiene un perro=mijn oma heeft een hond
+el gato es pequeño=de kat is klein`},
+
+{t:"Unit 5 · Het lichaam",c:"#ff4b4b",g:"💪",
+ w:`cuerpo|lichaam|🧍
+cabeza|hoofd|🤕
+cara|gezicht|😊
+ojo|oog|👁️
+boca|mond|👄
+nariz|neus|👃
+oreja|oor|👂
+mano|hand|✋
+pie|voet|🦶
+brazo|arm|💪
+pierna|been|🦵
+dedo|vinger|☝️
+pelo|haar|💇
+diente|tand|🦷
+corazón|hart|❤️
+cuello|nek|🧣
+espalda|rug|🔙
+rodilla|knie|🦿
+estómago|maag|😣
+labios|lippen|👄
+lengua|tong|👅
+garganta|keel|🗣️
+hombro|schouder|🤷
+piel|huid|🧴
+sangre|bloed|🩸
+hueso|bot|🦴
+cerebro|hersenen|🧠`,
+ s:`me duele la cabeza=ik heb hoofdpijn
+tengo dos manos=ik heb twee handen
+los ojos son azules=de ogen zijn blauw
+lávate las manos=was je handen
+me duele el pie=mijn voet doet pijn
+ella tiene el pelo largo=zij heeft lang haar
+abre la boca=doe je mond open
+me duele la garganta=ik heb keelpijn
+el cuerpo humano=het menselijk lichaam
+me lavo la cara=ik was mijn gezicht`},
+
+{t:"Unit 6 · Kleding",c:"#e5559f",g:"👕",
+ w:`ropa|kleding|🧺
+camisa|overhemd|👔
+camiseta|T-shirt|👕
+pantalón|broek|👖
+vestido|jurk|👗
+falda|rok|🩱
+zapatos|schoenen|👞
+calcetines|sokken|🧦
+abrigo|jas|🧥
+sombrero|hoed|👒
+gorra|pet|🧢
+bufanda|sjaal|🧣
+guantes|handschoenen|🧤
+chaqueta|jasje|🥼
+jersey|trui|🧶
+cinturón|riem|➰
+gafas|bril|👓
+reloj|horloge|⌚
+bolso|tas|👜
+botas|laarzen|🥾
+corbata|stropdas|👔
+anillo|ring|💍
+paraguas|paraplu|☂️
+talla|maat|📏`,
+ s:`llevo una camisa azul=ik draag een blauw overhemd
+los zapatos son negros=de schoenen zijn zwart
+necesito un abrigo=ik heb een jas nodig
+me gusta este vestido=ik vind deze jurk mooi
+dónde están mis zapatos=waar zijn mijn schoenen?
+ella lleva una falda roja=zij draagt een rode rok
+me gusta esta ropa=ik vind deze kleding mooi
+necesito un paraguas=ik heb een paraplu nodig
+qué talla usas=welke maat heb je?
+llevo un jersey verde=ik draag een groene trui`},
+
+{t:"Unit 7 · Huis & meubels",c:"#2b70c9",g:"🏠",
+ w:`casa|huis|🏠
+puerta|deur|🚪
+ventana|raam|🪟
+mesa|tafel|🍽️
+silla|stoel|🪑
+cama|bed|🛏️
+cocina|keuken|🍳
+baño|badkamer|🛁
+sala|woonkamer|🛋️
+dormitorio|slaapkamer|🛌
+jardín|tuin|🌳
+sofá|bank|🛋️
+lámpara|lamp|💡
+nevera|koelkast|🧊
+espejo|spiegel|🪞
+llave|sleutel|🔑
+suelo|vloer|🔲
+pared|muur|🧱
+techo|plafond|⬆️
+piso|appartement|🏢
+escalera|trap|🪜
+armario|kast|🚪
+alfombra|tapijt|🧶
+cortina|gordijn|🪟
+televisión|televisie|📺
+ordenador|computer|💻
+teléfono|telefoon|📱
+despertador|wekker|⏰`,
+ s:`la casa es grande=het huis is groot
+abre la puerta=doe de deur open
+la mesa está en la cocina=de tafel staat in de keuken
+mi dormitorio es pequeño=mijn slaapkamer is klein
+hay una silla en el jardín=er staat een stoel in de tuin
+cierra la ventana=doe het raam dicht
+vivo en un piso pequeño=ik woon in een klein appartement
+la televisión está en la sala=de televisie staat in de woonkamer
+mi ordenador es nuevo=mijn computer is nieuw
+hay dos dormitorios=er zijn twee slaapkamers`},
+
+{t:"Unit 8 · Werkwoorden",c:"#00b894",g:"🏃",
+ w:`ser|zijn|🟰
+estar|zijn (staat)|📍
+tener|hebben|🤲
+hacer|doen|🛠️
+ir|gaan|🚶
+comer|eten|🍽️
+beber|drinken|🥤
+hablar|spreken|💬
+vivir|wonen|🏡
+trabajar|werken|💼
+querer|willen|💭
+poder|kunnen|✅
+ver|zien|👀
+leer|lezen|📖
+escribir|schrijven|✍️
+comprar|kopen|🛒
+dormir|slapen|😴
+jugar|spelen|⚽
+aprender|leren|🎓
+entender|begrijpen|💡
+venir|komen|🚶
+salir|uitgaan|🚪
+llegar|aankomen|📍
+empezar|beginnen|▶️
+ayudar|helpen|🤝
+llamar|bellen|📞
+pensar|denken|💭
+saber|weten|🧠
+necesitar|nodig hebben|❗
+dar|geven|🎁`,
+ s:`quiero aprender español=ik wil Spaans leren
+ella habla español=zij spreekt Spaans
+vivo en Holanda=ik woon in Nederland
+trabajo en casa=ik werk thuis
+me gusta leer libros=ik hou van boeken lezen
+no puedo dormir=ik kan niet slapen
+vamos a comer=we gaan eten
+puedes ayudarme=kun je me helpen?
+necesito ayuda=ik heb hulp nodig
+vengo de Holanda=ik kom uit Nederland
+no sé la respuesta=ik weet het antwoord niet`},
+
+{t:"Unit 9 · Tijd & dagen",c:"#9b59b6",g:"📅",
+ w:`lunes|maandag|📅
+martes|dinsdag|📅
+miércoles|woensdag|📅
+jueves|donderdag|📅
+viernes|vrijdag|📅
+sábado|zaterdag|🎉
+domingo|zondag|⛪
+hoy|vandaag|📌
+mañana|morgen|➡️
+ayer|gisteren|⬅️
+día|dag|☀️
+semana|week|🗓️
+mes|maand|📆
+año|jaar|🎊
+hora|uur|⏰
+minuto|minuut|⏱️
+ahora|nu|⏳
+tarde|laat|🌆
+temprano|vroeg|🌄
+siempre|altijd|♾️
+fin de semana|weekend|🎉
+enero|januari|📅
+febrero|februari|📅
+marzo|maart|📅
+abril|april|📅
+mayo|mei|📅
+junio|juni|📅
+julio|juli|📅
+agosto|augustus|📅
+diciembre|december|📅`,
+ s:`hoy es lunes=vandaag is het maandag
+mañana es martes=morgen is het dinsdag
+qué día es hoy=welke dag is het vandaag?
+una semana tiene siete días=een week heeft zeven dagen
+nos vemos mañana=tot morgen
+son las tres=het is drie uur
+mi cumpleaños es en mayo=mijn verjaardag is in mei
+nos vemos el fin de semana=tot in het weekend
+en diciembre hace frío=in december is het koud
+hoy es quince de julio=vandaag is het vijftien juli`},
+
+{t:"Unit 10 · Reizen & plaatsen",c:"#16a085",g:"✈️",
+ w:`ciudad|stad|🏙️
+pueblo|dorp|🏘️
+calle|straat|🛣️
+playa|strand|🏖️
+montaña|berg|⛰️
+país|land|🌍
+aeropuerto|vliegveld|🛫
+estación|station|🚉
+tren|trein|🚆
+coche|auto|🚗
+autobús|bus|🚌
+avión|vliegtuig|✈️
+hotel|hotel|🏨
+restaurante|restaurant|🍴
+tienda|winkel|🏪
+mercado|markt|🧺
+banco|bank|🏦
+hospital|ziekenhuis|🏥
+mapa|kaart|🗺️
+billete|kaartje|🎫
+maleta|koffer|🧳
+pasaporte|paspoort|🛂
+viaje|reis|🧳
+vacaciones|vakantie|🏝️
+museo|museum|🏛️
+parque|park|🌳
+iglesia|kerk|⛪
+puente|brug|🌉`,
+ s:`voy a la playa=ik ga naar het strand
+dónde está la estación=waar is het station?
+el tren llega tarde=de trein komt te laat
+quiero un billete=ik wil een kaartje
+el hotel está en el centro=het hotel is in het centrum
+vamos a la ciudad=we gaan naar de stad
+tengo dos maletas=ik heb twee koffers
+dónde está el museo=waar is het museum?
+me gustan las vacaciones=ik hou van vakantie
+el parque es bonito=het park is mooi`},
+
+{t:"Unit 11 · Weer & natuur",c:"#0aa5c9",g:"🌤️",
+ w:`sol|zon|☀️
+lluvia|regen|🌧️
+nieve|sneeuw|❄️
+viento|wind|💨
+nube|wolk|☁️
+calor|warmte|🥵
+frío|kou|🥶
+cielo|lucht|🌤️
+mar|zee|🌊
+río|rivier|🏞️
+árbol|boom|🌳
+flor|bloem|🌸
+hierba|gras|🌱
+luna|maan|🌙
+estrella|ster|⭐
+fuego|vuur|🔥
+tierra|aarde|🌍
+tormenta|storm|⛈️
+arcoíris|regenboog|🌈
+bosque|bos|🌲
+tiempo|weer|🌦️
+niebla|mist|🌫️
+temperatura|temperatuur|🌡️
+otoño|herfst|🍂
+invierno|winter|⛄
+primavera|lente|🌷
+verano|zomer|😎
+lago|meer|🏞️`,
+ s:`hace sol hoy=het is zonnig vandaag
+hace mucho frío=het is heel koud
+me gusta la lluvia=ik hou van regen
+el cielo está azul=de lucht is blauw
+hay muchas flores=er zijn veel bloemen
+la luna es bonita=de maan is mooi
+qué tiempo hace=wat voor weer is het?
+me gusta el verano=ik hou van de zomer
+en otoño caen las hojas=in de herfst vallen de bladeren
+hay niebla hoy=het is mistig vandaag`},
+
+{t:"Unit 12 · Gevoelens & woorden",c:"#d67d00",g:"😄",
+ w:`feliz|blij|😄
+triste|verdrietig|😢
+cansado|moe|😴
+enfadado|boos|😠
+contento|tevreden|🙂
+grande|groot|🐘
+pequeño|klein|🐜
+bueno|goed|👍
+malo|slecht|👎
+bonito|mooi|🥰
+feo|lelijk|🙈
+nuevo|nieuw|✨
+viejo|oud|📜
+rápido|snel|⚡
+lento|langzaam|🐢
+fácil|makkelijk|🟢
+difícil|moeilijk|🔴
+importante|belangrijk|❗
+fuerte|sterk|💪
+divertido|leuk|😁
+enfermo|ziek|🤒
+alto|hoog|📏
+bajo|laag|📉
+caro|duur|💸
+barato|goedkoop|🪙
+limpio|schoon|🧼
+sucio|vuil|🧹
+tranquilo|rustig|😌
+ocupado|druk|📅`,
+ s:`estoy muy feliz=ik ben heel blij
+estoy cansado=ik ben moe
+la casa es grande=het huis is groot
+el libro es interesante=het boek is interessant
+español no es difícil=Spaans is niet moeilijk
+estoy contento hoy=ik ben tevreden vandaag
+es muy importante=het is heel belangrijk
+el hotel es muy caro=het hotel is heel duur
+la casa está limpia=het huis is schoon
+estoy muy ocupado=ik heb het heel druk`},
+
+{t:"Unit 13 · Beroepen",c:"#0984e3",g:"💼",
+ w:`profesor|leraar|👨‍🏫
+médico|dokter|👨‍⚕️
+enfermero|verpleger|🧑‍⚕️
+policía|politieagent|👮
+bombero|brandweerman|👨‍🚒
+cocinero|kok|👨‍🍳
+camarero|ober|🧑‍🍳
+panadero|bakker|🥖
+abogado|advocaat|⚖️
+ingeniero|ingenieur|👷
+dependiente|verkoper|🛍️
+peluquero|kapper|💇
+cartero|postbode|📮
+piloto|piloot|✈️
+conductor|chauffeur|🚗
+artista|kunstenaar|🎨
+músico|muzikant|🎵
+jefe|baas|👔
+trabajo|werk|💼
+oficina|kantoor|🏢
+empresa|bedrijf|🏭
+dinero|geld|💶`,
+ s:`soy profesor=ik ben leraar
+mi madre es médico=mijn moeder is dokter
+trabajo en una oficina=ik werk op een kantoor
+el cocinero prepara la cena=de kok maakt het avondeten
+quiero ser abogado=ik wil advocaat worden
+el camarero trae el café=de ober brengt de koffie
+mi jefe es simpático=mijn baas is aardig
+gano poco dinero=ik verdien weinig geld
+la empresa es grande=het bedrijf is groot
+ella trabaja en un hospital=zij werkt in een ziekenhuis`},
+
+{t:"Unit 14 · School & leren",c:"#6c5ce7",g:"🎓",
+ w:`escuela|school|🏫
+clase|klas|📚
+alumno|leerling|🧑‍🎓
+libro|boek|📖
+cuaderno|schrift|📓
+lápiz|potlood|✏️
+bolígrafo|pen|🖊️
+papel|papier|📄
+pizarra|schoolbord|📋
+mochila|rugzak|🎒
+examen|toets|📝
+pregunta|vraag|❓
+respuesta|antwoord|✅
+palabra|woord|🔤
+letra|letter|🔠
+idioma|taal|🗣️
+español|Spaans|🇪🇸
+inglés|Engels|🇬🇧
+holandés|Nederlands|🇳🇱
+deberes|huiswerk|📚
+biblioteca|bibliotheek|📚
+estudiar|studeren|📖`,
+ s:`estudio español=ik studeer Spaans
+la clase empieza a las nueve=de les begint om negen uur
+tengo un examen mañana=ik heb morgen een toets
+cuál es la respuesta=wat is het antwoord?
+hablo tres idiomas=ik spreek drie talen
+el alumno lee un libro=de leerling leest een boek
+necesito un lápiz=ik heb een potlood nodig
+hago los deberes=ik maak het huiswerk
+la biblioteca está cerrada=de bibliotheek is gesloten
+me gusta estudiar=ik hou van studeren`},
+
+{t:"Unit 15 · Sport & hobby's",c:"#009432",g:"⚽",
+ w:`deporte|sport|🏅
+fútbol|voetbal|⚽
+tenis|tennis|🎾
+baloncesto|basketbal|🏀
+natación|zwemmen|🏊
+correr|hardlopen|🏃
+bailar|dansen|💃
+cantar|zingen|🎤
+música|muziek|🎵
+película|film|🎬
+juego|spel|🎮
+pelota|bal|⚽
+bicicleta|fiets|🚲
+gimnasio|sportschool|🏋️
+equipo|team|👥
+partido|wedstrijd|🆚
+ganar|winnen|🏆
+perder|verliezen|❌
+pintar|schilderen|🎨
+viajar|reizen|🧳
+cocinar|koken|🍳
+foto|foto|📷`,
+ s:`me gusta el fútbol=ik hou van voetbal
+juego al tenis=ik speel tennis
+mi equipo gana=mijn team wint
+me gusta bailar=ik hou van dansen
+vamos al gimnasio=we gaan naar de sportschool
+ella canta muy bien=zij zingt heel goed
+veo una película=ik kijk een film
+monto en bicicleta=ik fiets
+me gusta viajar=ik hou van reizen
+me gusta cocinar=ik hou van koken`},
+
+{t:"Unit 16 · In de stad & winkelen",c:"#e17055",g:"🛍️",
+ w:`supermercado|supermarkt|🛒
+panadería|bakkerij|🥖
+carnicería|slagerij|🥩
+librería|boekwinkel|📚
+zapatería|schoenwinkel|👟
+precio|prijs|🏷️
+euro|euro|💶
+tarjeta|pinpas|💳
+caja|kassa|🧾
+bolsa|tas|🛍️
+oferta|aanbieding|🏷️
+descuento|korting|🔻
+abierto|open|🟢
+cerrado|gesloten|🔴
+vender|verkopen|💰
+pagar|betalen|💳
+regalo|cadeau|🎁
+cliente|klant|🧑
+gastar|uitgeven|💸
+lista|lijstje|📝
+comida|boodschappen|🍎
+centro|centrum|🎯`,
+ s:`voy al supermercado=ik ga naar de supermarkt
+cuánto cuesta=hoeveel kost het?
+quiero pagar con tarjeta=ik wil met pin betalen
+la tienda está abierta=de winkel is open
+necesito comprar pan=ik moet brood kopen
+esto es un regalo=dit is een cadeau
+hay una oferta hoy=er is vandaag een aanbieding
+el precio es alto=de prijs is hoog
+tengo una lista=ik heb een lijstje
+la caja está allí=de kassa is daar`},
+
+{t:"Unit 17 · Gezondheid & dokter",c:"#d63031",g:"🩺",
+ w:`doctor|dokter|🩺
+enfermera|verpleegster|👩‍⚕️
+dolor|pijn|😣
+fiebre|koorts|🌡️
+gripe|griep|🤧
+tos|hoest|😷
+resfriado|verkoudheid|🤧
+medicina|medicijn|💊
+pastilla|pil|💊
+cita|afspraak|📅
+salud|gezondheid|💚
+ambulancia|ambulance|🚑
+dentista|tandarts|🦷
+receta|recept|📋
+ayuda|hulp|🆘
+descansar|rusten|🛌
+respirar|ademen|😮‍💨
+curar|genezen|❤️‍🩹
+grave|ernstig|⚠️
+farmacia|apotheek|💊
+sano|gezond|💪
+cita médica|doktersafspraak|📅`,
+ s:`me duele la cabeza=ik heb hoofdpijn
+tengo fiebre=ik heb koorts
+necesito una medicina=ik heb een medicijn nodig
+tengo una cita con el médico=ik heb een afspraak met de dokter
+estoy enfermo=ik ben ziek
+llama a una ambulancia=bel een ambulance
+necesito descansar=ik moet rusten
+me duele el estómago=ik heb buikpijn
+la farmacia está cerca=de apotheek is dichtbij
+tienes que descansar=je moet rusten`},
+
+{t:"Unit 18 · Vraagwoorden & zinnen",c:"#e1a100",g:"💬",
+ w:`qué|wat|❓
+quién|wie|🙋
+dónde|waar|📍
+cuándo|wanneer|🕐
+cómo|hoe|🤔
+por qué|waarom|❓
+cuánto|hoeveel|🔢
+cuál|welke|❔
+aquí|hier|📍
+allí|daar|👉
+esto|dit|👇
+eso|dat|👉
+con|met|🤝
+sin|zonder|🚫
+para|voor|🎯
+porque|omdat|💡
+y|en|➕
+o|of|🔀
+nada|niets|🚫
+algo|iets|✨
+alguien|iemand|🧑
+nunca|nooit|🚫
+siempre|altijd|♾️
+mucho|veel|📈`,
+ s:`qué es esto=wat is dit?
+dónde está el baño=waar is de wc?
+cómo te llamas=hoe heet je?
+cuánto cuesta esto=hoeveel kost dit?
+por qué no=waarom niet?
+quién eres=wie ben jij?
+no entiendo nada=ik begrijp er niets van
+quiero algo de comer=ik wil iets te eten
+esto es para ti=dit is voor jou
+vengo sin dinero=ik kom zonder geld`}
+];
+
+function parseWords(s){return s.trim().split('\n').map(l=>{const p=l.split('|');return{es:p[0].trim(),nl:p[1].trim(),emoji:(p[2]||'⭐').trim()};});}
+function parseSents(s){return s.trim().split('\n').map(l=>{const p=l.split('=');return{es:p[0].trim().split(/\s+/),nl:p[1].trim()};});}
+const UNITS = RAW.map(u=>({title:u.t,color:u.c,guide:u.g,words:parseWords(u.w),sentences:parseSents(u.s)}));
+UNITS.forEach((u,ui)=>u.words.forEach(w=>{ w.ui=ui; w.key=ui+'|'+w.es; }));
+const ALLWORDS = UNITS.flatMap(u=>u.words);
+const WORDMAP = {}; ALLWORDS.forEach(w=>WORDMAP[w.key]=w);
+const LESSONS_PER_UNIT = 50;
+const EX_PER_LESSON = 20;
+
+/* ============================================================
+   STATE + PERSISTENTIE
+   ============================================================ */
+let state = { streak:0, gems:0, hearts:5, lastHeartTs:null, lastActiveDate:null, progress:{}, totalXp:0, weak:{}, lastReviewDate:null };
+const SKEY = 'espanol_leren_v2';
+function save(){ try{ localStorage.setItem(SKEY, JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const r=localStorage.getItem(SKEY); if(r){ const d=JSON.parse(r); state=Object.assign(state,d); } }catch(e){} }
+
+const REGEN_MS = 30*60*1000;
+function regenHearts(){
+  if(state.hearts>=5){ state.lastHeartTs=null; return; }
+  if(!state.lastHeartTs){ state.lastHeartTs=Date.now(); return; }
+  const g=Math.floor((Date.now()-state.lastHeartTs)/REGEN_MS);
+  if(g>0){ state.hearts=Math.min(5,state.hearts+g); state.lastHeartTs = state.hearts>=5?null:state.lastHeartTs+g*REGEN_MS; }
+}
+
+/* ============================================================
+   AUDIO
+   ============================================================ */
+let esVoice=null;
+function pickVoice(){ const vs=speechSynthesis.getVoices(); esVoice=vs.find(v=>/es[-_]ES/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null; }
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function speak(t){ if(!('speechSynthesis' in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang='es-ES'; u.rate=.9; if(esVoice)u.voice=esVoice; speechSynthesis.speak(u); }
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $=id=>document.getElementById(id);
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function show(s){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(s).classList.add('active');window.scrollTo(0,0);}
+function updateTop(){ $('h-streak').textContent=state.streak; $('h-gems').textContent=state.gems; $('h-hearts').textContent=state.hearts; }
+function today(){ return new Date().toISOString().slice(0,10); }
+
+/* ============================================================
+   OEFENING-GENERATOREN (pool-model)
+   ============================================================ */
+function makeMC(word,pool){ const opts=shuffle([word,...shuffle(pool.filter(w=>w!==word && w.nl!==word.nl)).slice(0,3)]); return {type:'mc',word,opts,answer:word.nl,key:word.key}; }
+function makeListen(word){ return {type:'listen',word,answer:word.es,key:word.key}; }
+function makeMatch(words){ return {type:'match',words}; }
+function makeTranslate(sent,pool){
+  const extra=shuffle(pool.map(w=>w.es).concat(['el','la','y','un','en']))
+    .filter(w=>!sent.es.includes(w)).slice(0,3);
+  return {type:'translate',sent,bank:shuffle(sent.es.concat(extra))};
+}
+
+/* foutentracking */
+function recordWord(key,correct){
+  if(!key)return; if(!state.weak)state.weak={};
+  if(correct){ if(state.weak[key]){ state.weak[key]--; if(state.weak[key]<=0) delete state.weak[key]; } }
+  else { state.weak[key]=Math.min(5,(state.weak[key]||0)+1); }
+  save();
+}
+function weakCount(){ return Object.values(state.weak||{}).filter(v=>v>0).length; }
+
+/* ============================================================
+   LES-GENERATOR (50 per unit, ~20 opdrachten, breed focusvenster)
+   ============================================================ */
+function buildLesson(unit,li){
+  const W=unit.words.length, win=Math.min(14,W);
+  const start=Math.round((li/(LESSONS_PER_UNIT-1))*Math.max(0,W-win));
+  const focus=unit.words.slice(start,start+win);
+  const pool=unit.words;
+  const S=shuffle(unit.sentences);
+  const mc=shuffle(focus), ls=shuffle(focus);
+  const q=[];
+  for(let i=0;i<8;i++) q.push(makeMC(mc[i%mc.length],pool));      // 8x woord kiezen
+  for(let i=0;i<5;i++) q.push(makeListen(ls[i%ls.length]));       // 5x luisteren
+  for(let i=0;i<3;i++) q.push(makeMatch(shuffle(focus).slice(0,Math.min(4,focus.length)))); // 3x matchen
+  for(let i=0;i<4;i++) q.push(makeTranslate(S[i%S.length],pool)); // 4x vertalen
+  return shuffle(q).slice(0,EX_PER_LESSON);
+}
+
+/* dagelijkse herhaalles uit zwakke woorden (~10 opdrachten) */
+function buildReview(){
+  const pool=ALLWORDS;
+  let keys=Object.keys(state.weak||{}).filter(k=>state.weak[k]>0 && WORDMAP[k]);
+  keys.sort((a,b)=>state.weak[b]-state.weak[a]);
+  let words=keys.map(k=>WORDMAP[k]);
+  if(words.length<10){
+    const started=[]; UNITS.forEach((u,ui)=>{ if(ui===0||(state.progress[ui]||0)>0) started.push(...u.words); });
+    const src=started.length?started:ALLWORDS;
+    words=words.concat(shuffle(src).filter(w=>!words.includes(w))).slice(0,10);
+  } else { words=words.slice(0,12); }
+  const focus=shuffle(words).slice(0,10);
+  const q=[];
+  focus.forEach((w,i)=>{ q.push((i%3===2)?makeListen(w):makeMC(w,pool)); });
+  q.push(makeMatch(shuffle(focus).slice(0,4)));
+  q.push(makeMatch(shuffle(focus).slice(0,4)));
+  let added=0;
+  for(const w of focus){ const s=UNITS[w.ui].sentences.find(se=>se.es.includes(w.es)); if(s){ q.push(makeTranslate(s,pool)); added++; } if(added>=2)break; }
+  return shuffle(q);
+}
+
+function startLesson(ui,li){
+  regenHearts();
+  if(state.hearts<=0){ $('heartModal').classList.add('active'); return; }
+  const unit=UNITS[ui];
+  session={ui,li,unit,queue:buildLesson(unit,li),idx:0,correct:0,total:0,xp:0,answered:false};
+  show('lesson'); updateTop(); $('l-hearts').textContent=state.hearts; renderQuestion();
+}
+function startReview(){
+  regenHearts();
+  if(state.hearts<=0){ $('heartModal').classList.add('active'); return; }
+  const q=buildReview(); if(!q.length) return;
+  session={review:true,unit:UNITS[0],queue:q,idx:0,correct:0,total:0,xp:0,answered:false};
+  show('lesson'); updateTop(); $('l-hearts').textContent=state.hearts; renderQuestion();
+}
+
+/* ============================================================
+   HOME / PAD
+   ============================================================ */
+function renderHome(){
+  regenHearts(); save(); updateTop();
+  const cont=$('units'); cont.innerHTML='';
+
+  const wc=weakCount(); const reviewedToday=state.lastReviewDate===today();
+  const rc=document.createElement('button');
+  rc.className='review-card'+(reviewedToday?' done':'');
+  const rsub = reviewedToday ? 'Vandaag gedaan ✅ — nog een rondje?'
+             : (wc>0 ? (wc+' woord'+(wc>1?'en':'')+' om te herhalen') : 'Frissen je geleerde woorden op');
+  rc.innerHTML=`<div class="ricon">${reviewedToday?'🔁':'🎯'}</div>
+    <div class="rtext"><h2>Dagelijkse herhaling</h2><p>${rsub}</p></div><div class="rarrow">▶</div>`;
+  rc.onclick=startReview;
+  cont.appendChild(rc);
+
+  UNITS.forEach((u,ui)=>{
+    const done=state.progress[ui]||0;
+    const prevDone=ui===0?LESSONS_PER_UNIT:(state.progress[ui-1]||0);
+    const unlocked = ui===0 || prevDone>=LESSONS_PER_UNIT;
+
+    const banner=document.createElement('div');
+    banner.className='unit-banner'+(unlocked?'':' locked');
+    banner.style.background=u.color;
+    const parts=u.title.split('·');
+    banner.innerHTML=`<div><h2>${parts[0].trim()}</h2><p>${parts[1].trim()}</p>
+      <div class="sub">${unlocked?(done+'/'+LESSONS_PER_UNIT+' lessen'):'🔒 Rond de vorige unit af'}</div></div>
+      <div class="guide">${u.guide}</div>`;
+    cont.appendChild(banner);
+
+    const path=document.createElement('div'); path.className='path';
+    for(let li=0; li<LESSONS_PER_UNIT; li++){
+      const row=document.createElement('div'); row.className='lesson-row';
+      let cls='locked', ico='🔒';
+      if(unlocked && li<done){cls='done';ico='⭐';}
+      else if(unlocked && li===done){cls='current';ico='★';}
+      const node=document.createElement('button');
+      node.className='node '+cls;
+      node.style.transform=`translateX(${Math.round(Math.sin(li*0.6)*72)}px)`;
+      node.innerHTML=(cls==='current'?'<span class="start-pill">START</span>':'')+ico+`<span class="lbl">Les ${li+1}</span>`;
+      if(cls!=='locked') node.onclick=()=>startLesson(ui,li);
+      row.appendChild(node); path.appendChild(row);
+    }
+    cont.appendChild(path);
+  });
+}
+
+/* ============================================================
+   VRAAG RENDEREN
+   ============================================================ */
+let session=null;
+function renderQuestion(){
+  const s=session, q=s.queue[s.idx];
+  s.answered=false; s.picked=null; s.built=[];
+  $('l-progress').style.width=(s.idx/s.queue.length*100)+'%';
+  const f=$('l-footer'); f.className='footer'; $('l-feedback').innerHTML='';
+  const chk=$('l-check'); chk.textContent='Controleer'; chk.className='btn btn-gray'; chk.disabled=true; chk.onclick=onCheck;
+  const body=$('l-body');
+
+  if(q.type==='mc'){
+    body.innerHTML=`<div class="prompt-title">Wat betekent dit woord?</div>
+      <div class="speaker-row"><button class="speaker-btn" onclick="speak('${q.word.es.replace(/'/g,"\\'")}')">🔊</button><div class="es-word">${q.word.es}</div></div>
+      <div class="choice-grid" id="grid"></div>`;
+    const grid=$('grid');
+    q.opts.forEach((o,i)=>{
+      const b=document.createElement('button'); b.className='choice'; b.dataset.nl=o.nl; b.dataset.correct=(o.nl===q.answer)?'1':'';
+      b.innerHTML=`<span class="num">${i+1}</span><span class="emoji">${o.emoji}</span>${o.nl}`;
+      b.onclick=()=>{document.querySelectorAll('#grid .choice').forEach(c=>c.classList.remove('selected'));b.classList.add('selected');s.picked=o;enableCheck();};
+      grid.appendChild(b);
+    });
+    speak(q.word.es);
+  }
+  else if(q.type==='listen'){
+    body.innerHTML=`<div class="prompt-title">Typ wat je hoort</div>
+      <div class="speaker-row"><button class="speaker-btn" onclick="speak('${q.word.es.replace(/'/g,"\\'")}')">🔊</button><button class="speaker-btn small" onclick="speak('${q.word.es.replace(/'/g,"\\'")}')">🐢</button></div>
+      <input class="type-input" id="typed" placeholder="Typ het Spaanse woord..." autocomplete="off" autocapitalize="off" spellcheck="false">
+      <p style="font-weight:700;color:#afafaf;margin-top:12px;font-size:14px">Tip: het betekent "${q.word.nl}"</p>`;
+    const inp=$('typed'); inp.oninput=()=>{s.picked=inp.value;inp.value.trim()?enableCheck():disableCheck();};
+    inp.onkeydown=e=>{if(e.key==='Enter'&&!$('l-check').disabled)onCheck();};
+    setTimeout(()=>{inp.focus();speak(q.word.es);},250);
+  }
+  else if(q.type==='match'){
+    const left=q.words, right=shuffle(q.words);
+    s.matchState={sel:null,doneCount:0,need:q.words.length};
+    body.innerHTML=`<div class="prompt-title">Verbind de paren 🔗</div><div class="match-cols"><div id="col-es"></div><div id="col-nl"></div></div>`;
+    const ce=$('col-es'), cn=$('col-nl');
+    [ce,cn].forEach(c=>{c.style.display='flex';c.style.flexDirection='column';c.style.gap='13px';});
+    left.forEach(w=>{const b=document.createElement('button');b.className='match-btn';b.textContent=w.es;b.dataset.key=w.es;b.dataset.wkey=w.key||'';b.dataset.side='es';b.onclick=()=>{speak(w.es);pickMatch(b,w.es);};ce.appendChild(b);});
+    right.forEach(w=>{const b=document.createElement('button');b.className='match-btn';b.textContent=w.nl;b.dataset.key=w.es;b.dataset.wkey=w.key||'';b.dataset.side='nl';b.onclick=()=>pickMatch(b,w.es);cn.appendChild(b);});
+    $('l-check').textContent='Verbind alle paren';
+  }
+  else if(q.type==='translate'){
+    body.innerHTML=`<div class="prompt-title">Vertaal naar het Spaans 🇪🇸</div>
+      <div class="speaker-row"><div class="guide" style="font-size:44px">${s.unit.guide}</div><div class="es-word">${q.sent.nl}</div></div>
+      <div class="answer-area" id="ans"></div><div class="bank" id="bank"></div>`;
+    const bank=$('bank'), ans=$('ans');
+    q.bank.forEach((w,i)=>{
+      const t=document.createElement('button'); t.className='tile'; t.textContent=w; t.dataset.i=i;
+      t.onclick=()=>{ const mv=document.createElement('button'); mv.className='tile'; mv.textContent=w;
+        mv.onclick=()=>{mv.remove();t.classList.remove('used');s.built=s.built.filter(x=>x.i!==i);syncTrans();};
+        ans.appendChild(mv); t.classList.add('used'); s.built.push({i,w}); syncTrans(); };
+      bank.appendChild(t);
+    });
+  }
+}
+function syncTrans(){ session.built.length?enableCheck():disableCheck(); }
+function enableCheck(){const c=$('l-check');c.disabled=false;c.className='btn btn-green';}
+function disableCheck(){const c=$('l-check');c.disabled=true;c.className='btn btn-gray';}
+
+function pickMatch(btn,key){
+  const ms=session.matchState;
+  if(btn.classList.contains('done'))return;
+  if(!ms.sel){ms.sel=btn;btn.classList.add('selected');return;}
+  if(ms.sel===btn){btn.classList.remove('selected');ms.sel=null;return;}
+  if(ms.sel.dataset.side===btn.dataset.side){ms.sel.classList.remove('selected');ms.sel=btn;btn.classList.add('selected');return;}
+  if(ms.sel.dataset.key===key){
+    recordWord(btn.dataset.wkey,true);
+    ms.sel.classList.remove('selected');ms.sel.classList.add('done');btn.classList.add('done');ms.sel=null;ms.doneCount++;
+    if(ms.doneCount>=ms.need) finishQuestion(true,null);
+  } else {
+    recordWord(ms.sel.dataset.wkey,false); recordWord(btn.dataset.wkey,false);
+    const a=ms.sel,b=btn; a.classList.add('flash-wrong');b.classList.add('flash-wrong');
+    setTimeout(()=>{a.classList.remove('flash-wrong','selected');b.classList.remove('flash-wrong');},600);
+    ms.sel=null; loseHeart();
+  }
+}
+
+function onCheck(){
+  const s=session, q=s.queue[s.idx];
+  if(s.answered){ nextQuestion(); return; }
+  let correct=false, solution='';
+  if(q.type==='mc'){
+    correct = s.picked && s.picked.nl===q.answer; solution=q.answer;
+    document.querySelectorAll('#grid .choice').forEach(c=>{c.classList.add('disabled');
+      if(c.dataset.correct==='1')c.classList.add('correct');
+      else if(c.classList.contains('selected'))c.classList.add('wrong');});
+  }
+  else if(q.type==='listen'){
+    const norm=x=>x.toLowerCase().trim().replace(/[¿?¡!.,]/g,'');
+    correct=norm(s.picked||'')===norm(q.answer); solution=q.answer;
+  }
+  else if(q.type==='translate'){
+    correct=s.built.map(x=>x.w).join(' ')===q.sent.es.join(' '); solution=q.sent.es.join(' ');
+  }
+  if((q.type==='mc'||q.type==='listen') && q.key) recordWord(q.key,correct);
+  finishQuestion(correct,solution);
+}
+
+function finishQuestion(correct,solution){
+  const s=session, cq=s.queue[s.idx];
+  if(cq.type==='translate') speak(cq.sent.es.join(' '));
+  else if(cq.type==='listen') speak(cq.word.es);
+  s.answered=true; s.total++;
+  const f=$('l-footer'), fb=$('l-feedback'), chk=$('l-check');
+  if(correct){
+    s.correct++; s.xp+=10; if(navigator.vibrate)navigator.vibrate(20);
+    f.className='footer correct';
+    fb.innerHTML=`<div class="feedback correct"><div class="fico">✅</div><div>¡Muy bien! Goed zo!</div></div>`;
+    chk.textContent='Verder'; chk.className='btn btn-green'; chk.disabled=false;
+  }else{
+    loseHeart(); f.className='footer wrong';
+    const sol=solution?`<small>Juiste antwoord: ${solution}</small>`:'';
+    fb.innerHTML=`<div class="feedback wrong"><div class="fico">❌</div><div>Bijna! ${sol}</div></div>`;
+    chk.textContent='Verder'; chk.className='btn btn-red'; chk.disabled=false;
+  }
+  chk.onclick=()=>nextQuestion();
+}
+
+function loseHeart(){
+  state.hearts=Math.max(0,state.hearts-1);
+  if(state.hearts<5 && !state.lastHeartTs) state.lastHeartTs=Date.now();
+  save();
+  $('l-hearts').textContent=state.hearts; $('h-hearts').textContent=state.hearts;
+  if(state.hearts<=0) setTimeout(()=>$('heartModal').classList.add('active'),400);
+}
+
+function nextQuestion(){
+  const s=session;
+  if(state.hearts<=0){ $('heartModal').classList.add('active'); return; }
+  s.idx++;
+  if(s.idx>=s.queue.length){ completeLesson(); return; }
+  renderQuestion();
+}
+
+function completeLesson(){
+  const s=session; $('l-progress').style.width='100%';
+  state.gems+=20; state.totalXp+=s.xp;
+  if(s.review) state.lastReviewDate=today();
+  else state.progress[s.ui]=Math.max(state.progress[s.ui]||0, s.li+1);
+  const t=today();
+  if(state.lastActiveDate!==t){
+    const y=new Date(Date.now()-86400000).toISOString().slice(0,10);
+    state.streak=(state.lastActiveDate===y)?state.streak+1:1;
+    state.lastActiveDate=t;
+  }
+  save();
+  const acc=Math.round(s.correct/Math.max(1,s.total)*100);
+  $('d-xp').textContent=s.xp; $('d-acc').textContent=acc+'%';
+  updateTop(); show('done');
+}
+
+/* ============================================================
+   NAVIGATIE / MODALS
+   ============================================================ */
+function quitLesson(){ $('heartModal').classList.remove('active'); session=null; renderHome(); show('home'); }
+function backHome(){ renderHome(); show('home'); }
+function refillHearts(){ state.hearts=5; state.lastHeartTs=null; save(); $('heartModal').classList.remove('active'); updateTop(); $('l-hearts').textContent=5; if(session)renderQuestion(); }
+function openReset(){
+  let n=0; Object.values(state.progress).forEach(v=>n+=v);
+  $('reset-stats').innerHTML=`🔥 ${state.streak} dagen streak &nbsp;·&nbsp; ⚡ ${state.totalXp} XP &nbsp;·&nbsp; ✅ ${n} lessen gedaan`;
+  $('resetModal').classList.add('active');
+}
+function closeReset(){ $('resetModal').classList.remove('active'); }
+function resetAll(){ state={streak:0,gems:0,hearts:5,lastHeartTs:null,lastActiveDate:null,progress:{},totalXp:0,weak:{},lastReviewDate:null}; save(); closeReset(); renderHome(); }
+
+/* ============================================================
+   INIT
+   ============================================================ */
+load(); regenHearts(); renderHome();
+</script>
+</body>
+</html>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Español — Leer Spaans</title>
 <style>
